@@ -4,7 +4,7 @@ fn solution(input: &str, part1: bool) {
     let counts = parse_input(input);
     let mut min_fuel_cost = u32::MAX;
 
-    let start_pos = *counts.keys().max().unwrap();
+    let start_pos = *counts.keys().min().unwrap();
     let end_pos = *counts.keys().max().unwrap();
     for target in start_pos..end_pos {
         let mut total_fuel_cost = 0;
