@@ -42,7 +42,7 @@ fn main() {
     };
 
     let mut part2sum = 0;
-    for (sample, display) in data.iter() {
+    'next_display: for (sample, display) in data.iter() {
         'next_codec: for codec_candidate in "abcdefg".chars().permutations(7) {
             let codec_candidate = codec_candidate
                 .into_iter()
@@ -85,6 +85,7 @@ fn main() {
                 .unwrap();
 
             part2sum += display_n;
+            continue 'next_display;
         }
     }
 
