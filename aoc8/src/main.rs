@@ -4,6 +4,18 @@ extern crate maplit;
 use itertools::Itertools;
 use std::collections::HashMap;
 
+struct Codec(HashMap<char, char>);
+
+impl Codec {
+    fn decode(&self, source: &str) -> String {
+        source
+            .chars()
+            .map(|ch| self.0.get(&ch).unwrap())
+            .sorted()
+            .collect::<String>()
+    }
+}
+
 fn main() {
     let input = std::fs::read_to_string("aoc7.txt").unwrap();
     let data: Vec<(Vec<&str>, Vec<&str>)> = input
@@ -43,37 +55,25 @@ fn main() {
 
     let mut part2sum = 0;
     'next_display: for (sample, display) in data.iter() {
-        'next_codec: for codec_candidate in "abcdefg".chars().permutations(7) {
-            let codec_candidate = codec_candidate
-                .into_iter()
-                .zip("abcdefg".chars())
-                .collect::<HashMap<_, _>>();
+        'next_codec: for perm in "abcdefg".chars().permutations(7) {
+            let codec_candidate = Codec(
+                perm.into_iter()
+                    .zip("abcdefg".chars())
+                    .collect::<HashMap<_, _>>(),
+            );
 
-            let decoded_segment_sets = sample
+            let mut decoded_segment_sets = sample
                 .iter()
                 .chain(display.iter())
-                .map(|&seg| {
-                    seg.chars()
-                        .map(|ch| codec_candidate.get(&ch).unwrap())
-                        .sorted()
-                        .collect::<String>()
-                })
-                .collect::<Vec<_>>();
+                .map(|&seg| codec_candidate.decode(seg));
 
-            for seg_set in decoded_segment_sets {
-                if !s_to_n.contains_key(&seg_set[..]) {
-                    continue 'next_codec;
-                }
+            if !decoded_segment_sets.all(|ss| s_to_n.contains_key(&ss[..])) {
+                continue 'next_codec;
             }
 
             let display_n = display
                 .into_iter()
-                .map(|&seg| {
-                    seg.chars()
-                        .map(|ch| codec_candidate.get(&ch).unwrap())
-                        .sorted()
-                        .collect::<String>()
-                })
+                .map(|&seg| codec_candidate.decode(seg))
                 .map(|s| {
                     s_to_n
                         .get(&s[..])
