@@ -4,25 +4,23 @@ type Point = (usize, usize);
 
 struct DepthGrid(Vec<Vec<u8>>);
 
+const DX: [i32; 4] = [0, 0, 1, -1];
+const DY: [i32; 4] = [1, -1, 0, 0];
+
 impl DepthGrid {
     fn get(&self, p: Point) -> u8 {
         self.0[p.0][p.1]
     }
 
-    fn neighbors(&self, row: usize, col: usize) -> impl Iterator<Item = (usize, usize)> + '_ {
-        let (row, col) = (row as i32, col as i32);
-        vec![
-            (row + 1, col),
-            (row - 1, col),
-            (row, col + 1),
-            (row, col - 1),
-        ]
-        .into_iter()
-        .filter_map(|(r, c)| {
-            let within_grid =
-                r >= 0 && r < self.0.len() as i32 && c >= 0 && c < self.0[0].len() as i32;
-            within_grid.then(|| (r as usize, c as usize))
-        })
+    fn neighbors(&self, row: usize, col: usize) -> impl Iterator<Item = Point> + '_ {
+        let (mx, my) = (self.0.len() as i32, self.0[0].len() as i32);
+        DX.into_iter()
+            .zip(DY.into_iter())
+            .map(move |(r_offset, c_offset)| (row as i32 + r_offset, col as i32 + c_offset))
+            .filter_map(move |(r, c)| {
+                let within_grid = r >= 0 && r < mx && c >= 0 && c < my;
+                within_grid.then(|| (r as usize, c as usize))
+            })
     }
 
     fn is_lowpoint(&self, row: usize, col: usize) -> bool {
@@ -45,8 +43,8 @@ fn main() {
         "Part 1: {}",
         depth_grid
             .lowpoints()
-            .map(|p| depth_grid.get(p))
-            .sum::<u8>()
+            .map(|p| depth_grid.get(p) as u32)
+            .sum::<u32>()
     );
 
     let mut basins: Vec<HashSet<Point>> = depth_grid
