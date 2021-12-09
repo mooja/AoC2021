@@ -14,8 +14,8 @@ impl DepthGrid {
 
     fn neighbors(&self, row: usize, col: usize) -> impl Iterator<Item = Point> + '_ {
         let (mx, my) = (self.0.len() as i32, self.0[0].len() as i32);
-        DX.into_iter()
-            .zip(DY.into_iter())
+        let offsets = DX.into_iter().zip(DY.into_iter());
+        offsets
             .map(move |(r_offset, c_offset)| (row as i32 + r_offset, col as i32 + c_offset))
             .filter_map(move |(r, c)| {
                 let within_grid = r >= 0 && r < mx && c >= 0 && c < my;
@@ -47,10 +47,10 @@ fn main() {
             .sum::<u32>()
     );
 
-    let mut basins: Vec<HashSet<Point>> = depth_grid
+    let mut basins = depth_grid
         .lowpoints()
-        .map(|p| vec![p].into_iter().collect())
-        .collect();
+        .map(|p| vec![p].into_iter().collect::<HashSet<_>>())
+        .collect::<Vec<_>>();
 
     for b in basins.iter_mut() {
         let mut queue = vec![b.clone().into_iter().next().unwrap()];
