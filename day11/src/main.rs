@@ -65,8 +65,7 @@ impl Grid<u8> {
         }
 
         while let Some(p) = flash_queue.pop() {
-            for n in self.neighbors(p)
-            {
+            for n in self.neighbors(p) {
                 if self.get(n) == 0 {
                     continue;
                 }
@@ -107,11 +106,11 @@ fn main() {
             p1 += step_fc;
         }
 
-        if step_fc == grid_len  {
+        if step_fc == grid_len {
             p2 = Some(step_idx);
         }
 
-        if step_idx >= 100 && p2.is_some() {
+        if step_idx > 100 && p2.is_some() {
             break;
         }
     }
