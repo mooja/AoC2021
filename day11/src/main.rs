@@ -49,30 +49,31 @@ where
     }
 }
 
-impl Grid<u8> {
-    fn step(&mut self) -> usize {
+
+
+    fn step(grid: &mut Grid<u8>) -> usize {
         let mut nflashes = 0;
         let mut flash_queue = vec![];
 
-        for p in self.iter_points() {
-            *self.get_mut(p) += 1;
+        for p in grid.iter_points() {
+            *grid.get_mut(p) += 1;
 
-            if self.get(p) > 9 {
-                *self.get_mut(p) = 0;
+            if grid.get(p) > 9 {
+                *grid.get_mut(p) = 0;
                 flash_queue.push(p);
                 nflashes += 1;
             }
         }
 
         while let Some(p) = flash_queue.pop() {
-            for n in self.neighbors(p) {
-                if self.get(n) == 0 {
+            for n in grid.neighbors(p) {
+                if grid.get(n) == 0 {
                     continue;
                 }
 
-                *self.get_mut(n) += 1;
-                if self.get(n) > 9 {
-                    *self.get_mut(n) = 0;
+                *grid.get_mut(n) += 1;
+                if grid.get(n) > 9 {
+                    *grid.get_mut(n) = 0;
                     flash_queue.push(n);
                     nflashes += 1;
                 }
@@ -81,7 +82,6 @@ impl Grid<u8> {
 
         nflashes
     }
-}
 
 fn parse_input(data: &str) -> Grid<u8> {
     Grid(
@@ -100,7 +100,7 @@ fn main() {
     let mut p2: Option<u32> = None;
 
     for step_idx in 1.. {
-        let step_fc = grid.step();
+        let step_fc = step(&mut grid);
 
         if step_idx <= 100 {
             p1 += step_fc;
