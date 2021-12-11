@@ -1,4 +1,3 @@
-use std::collections::HashSet;
 use std::fmt::Display;
 
 type Point = (usize, usize);
@@ -36,7 +35,7 @@ where
         (0..mx).map(move |x| (0..my).map(move |y| (x, y))).flatten()
     }
 
-    fn display(&self) {
+    fn _display(&self) {
         for row in &self.0 {
             println!(
                 "{}",
@@ -52,32 +51,36 @@ where
 
 impl Grid<u8> {
     fn step(&mut self) -> usize {
+        let mut nflashes = 0;
         let mut flash_queue = vec![];
-        let mut flashed_this_step = HashSet::new();
 
         for p in self.iter_points() {
             *self.get_mut(p) += 1;
+
             if self.get(p) > 9 {
+                *self.get_mut(p) = 0;
                 flash_queue.push(p);
-                flashed_this_step.insert(p);
+                nflashes += 1;
             }
         }
 
         while let Some(p) = flash_queue.pop() {
-            for n in self.neighbors(p) {
+            for n in self.neighbors(p)
+            {
+                if self.get(n) == 0 {
+                    continue;
+                }
+
                 *self.get_mut(n) += 1;
-                if self.get(n) > 9 && !flashed_this_step.contains(&n) {
+                if self.get(n) > 9 {
+                    *self.get_mut(n) = 0;
                     flash_queue.push(n);
-                    flashed_this_step.insert(n);
+                    nflashes += 1;
                 }
             }
         }
 
-        for &p in &flashed_this_step {
-            *self.get_mut(p) = 0;
-        }
-
-        flashed_this_step.len()
+        nflashes
     }
 }
 
@@ -99,16 +102,20 @@ fn main() {
 
     for step_idx in 1.. {
         let step_fc = grid.step();
-        if step_fc == grid_len && p2.is_none() {
-            p2 = Some(step_idx);
-            break;
+
+        if step_idx <= 100 {
+            p1 += step_fc;
         }
 
-        p1 += step_fc;
-        if step_idx == 100 {
-            println!("Step 1: {}", p1);
+        if step_fc == grid_len  {
+            p2 = Some(step_idx);
+        }
+
+        if step_idx >= 100 && p2.is_some() {
+            break;
         }
     }
 
+    println!("Step 1: {}", p1);
     println!("Part 2: {}", p2.unwrap());
 }
