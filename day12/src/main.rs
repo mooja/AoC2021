@@ -31,6 +31,7 @@ impl<'a> From<&'a str> for CaveGraph<'a> {
                 a if a.chars().all(|c| c.is_uppercase()) => Cave::Lg(a),
                 a => Cave::Sm(a),
             };
+
             let b = match iter.next().unwrap() {
                 b if b.chars().all(|c| c.is_uppercase()) => Cave::Lg(b),
                 b => Cave::Sm(b),
@@ -61,25 +62,19 @@ impl<'a> CaveGraph<'a> {
                 continue;
             }
 
+            let mut to_visit = self.caves.get(&cave).unwrap().clone();
             let visited_sm = history
                 .iter()
                 .copied()
                 .filter(|cave| matches!(cave, Cave::Sm(_)))
                 .collect::<Vec<_>>();
+            let visited_sm_hs = visited_sm.iter().copied().collect::<HashSet<_>>();
+            let have_visited_2sm = visited_sm.len() != visited_sm_hs.len();
 
-            let mut to_visit = self.caves.get(&cave).unwrap().clone();
-
-            if p2 {
-                let have_visited_2sm =
-                    visited_sm.len() != visited_sm.iter().collect::<HashSet<_>>().len();
-
-                if have_visited_2sm {
-                    to_visit = &to_visit - &visited_sm.into_iter().collect();
-                } else {
-                    to_visit = &to_visit - &vec![Cave::Sm(start)].into_iter().collect();
-                }
+            if p2 && !have_visited_2sm {
+                to_visit = &to_visit - &vec![Cave::Sm(start)].into_iter().collect();
             } else {
-                to_visit = &to_visit - &visited_sm.into_iter().collect();
+                to_visit = &to_visit - &visited_sm_hs;
             }
 
             let to_visit_with_histories = to_visit
@@ -90,6 +85,7 @@ impl<'a> CaveGraph<'a> {
                     (cave, history)
                 })
                 .collect::<Vec<_>>();
+
             queue.extend(to_visit_with_histories);
         }
 
