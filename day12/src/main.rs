@@ -1,3 +1,4 @@
+use std::iter;
 use std::collections::{HashMap, HashSet};
 
 #[derive(PartialEq, Eq, Hash, Clone, Debug, Copy)]
@@ -72,7 +73,7 @@ impl<'a> CaveGraph<'a> {
             let have_visited_2sm = visited_sm.len() != visited_sm_hs.len();
 
             if p2 && !have_visited_2sm {
-                to_visit = &to_visit - &vec![Cave::Sm(start)].into_iter().collect();
+                to_visit.remove(&Cave::Sm(start));
             } else {
                 to_visit = &to_visit - &visited_sm_hs;
             }
@@ -83,8 +84,7 @@ impl<'a> CaveGraph<'a> {
                 .map(|(cave, mut history)| {
                     history.push(cave);
                     (cave, history)
-                })
-                .collect::<Vec<_>>();
+                });
 
             queue.extend(to_visit_with_histories);
         }
