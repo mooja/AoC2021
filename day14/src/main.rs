@@ -13,9 +13,9 @@ fn main() {
         let mut new_state = state.clone();
 
         for (old_pair, count) in &state {
-            let (a, b) = rules.get(old_pair).unwrap();
+            let new_pairs = rules.get(old_pair).unwrap();
 
-            for &new_pair in &[a, b] {
+            for new_pair in &[new_pairs.0, new_pairs.1] {
                 new_state[new_pair] += *count as u128;
             }
 
