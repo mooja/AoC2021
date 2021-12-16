@@ -1,5 +1,5 @@
 use std::cmp::Ordering;
-use std::collections::{HashMap, BinaryHeap};
+use std::collections::BinaryHeap;
 use std::fmt::Display;
 
 type Point = (usize, usize);
@@ -40,11 +40,6 @@ where
             })
     }
 
-    fn iter_points(&self) -> impl Iterator<Item = Point> {
-        let (mx, my) = (self.0.len(), self.0[0].len());
-        (0..mx).map(move |x| (0..my).map(move |y| (x, y))).flatten()
-    }
-
     fn height(&self) -> usize {
         self.0.len()
     }
@@ -54,60 +49,40 @@ where
     }
 }
 
-struct WeightedAdjList(HashMap<Point, Vec<WeightedEdge>>);
+fn shortest_path(g: &Grid<u32>, start: Point, end: Point) -> Option<u32> {
+    let mut dist_from_start = vec![vec![u32::MAX; g.width()]; g.height()];
+    dist_from_start[start.1][start.0] = 0;
 
-impl WeightedAdjList {
-    fn shortest_path(&self, start: Point, end: Point) -> Option<u32> {
-        let mut dist_from_start: HashMap<Point, u32> =
-            self.0.keys().copied().map(|p| (p, u32::MAX)).collect();
-        dist_from_start.insert(start, 0);
+    let mut heap: BinaryHeap<_> = [State { p: start, cost: 0 }].into_iter().collect();
 
-        let mut heap: BinaryHeap<_> = [State { p: start, cost: 0 }].into_iter().collect();
-
-        while let Some(State { p, cost }) = heap.pop() {
-            if p == end {
-                return Some(cost);
-            }
-
-            if cost > *dist_from_start.get(&p).unwrap() {
-                continue;
-            }
-
-            for edge in self.0.get(&p).unwrap() {
-                let next = State {
-                    p: edge.p,
-                    cost: cost + edge.cost,
-                };
-
-                if next.cost < *dist_from_start.get(&next.p).unwrap() {
-                    heap.push(next);
-
-                    dist_from_start.insert(next.p, next.cost);
-                }
-            }
+    while let Some(State { p, cost }) = heap.pop() {
+        if p == end {
+            return Some(cost);
         }
 
-        None
-    }
-}
-
-impl Grid<u32> {
-    fn as_adj_list(&self) -> WeightedAdjList {
-        let mut hm = HashMap::new();
-        for p in self.iter_points() {
-            hm.insert(
-                p,
-                self.neighbors(p)
-                    .map(|other_p| WeightedEdge {
-                        p: other_p,
-                        cost: self.get(other_p),
-                    })
-                    .collect(),
-            );
+        if cost > dist_from_start[p.1][p.0] {
+            continue;
         }
 
-        WeightedAdjList(hm)
+        for n in g.neighbors(p) {
+            let edge = WeightedEdge {
+                p: n,
+                cost: g.get(n),
+            };
+
+            let next = State {
+                p: edge.p,
+                cost: cost + edge.cost,
+            };
+
+            if next.cost < dist_from_start[n.1][n.0] {
+                heap.push(next);
+                dist_from_start[n.1][n.0] = next.cost;
+            }
+        }
     }
+
+    None
 }
 
 fn main() {
@@ -116,13 +91,13 @@ fn main() {
 
     let start = (0, 0);
     let end = (g.width() - 1, g.height() - 1);
-    let p1 = g.as_adj_list().shortest_path(start, end).unwrap();
+    let p1 = shortest_path(&g, start, end).unwrap();
     println!("Part 1: {:?}", p1);
 
     let g2 = parse_input2(input);
     let start = (0, 0);
     let end = (g2.width() - 1, g2.height() - 1);
-    let p2 = g2.as_adj_list().shortest_path(start, end).unwrap();
+    let p2 = shortest_path(&g2, start, end).unwrap();
     println!("Part 2: {:?}", p2);
 }
 
@@ -133,7 +108,7 @@ fn parse_input(input: &str) -> Grid<u32> {
             .split('\n')
             .map(|line| {
                 line.chars()
-                    .map(|ch| (ch as u8 - '0' as u8) as u32)
+                    .map(|ch| (ch as u8 - b'0') as u32)
                     .collect::<Vec<_>>()
             })
             .collect::<Vec<_>>(),
