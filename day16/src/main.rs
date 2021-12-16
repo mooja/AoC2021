@@ -228,15 +228,12 @@ fn eval(p: &Packet) -> u64 {
 fn inner_main() -> Result<(), String> {
     let input = std::fs::read_to_string("aoc16.txt").unwrap();
 
-    let p1 = input
-        .trim()
-        .lines()
-        .map(|line| line.trim().parse::<Packet>().unwrap())
-        .map(|p| version_sum(&p))
-        .sum::<u32>();
+    let p = input.trim().parse::<Packet>()?;
+
+    let p1 = version_sum(&p);
     println!("P1: {}", p1);
 
-    let p2 = eval(&input.trim().parse::<Packet>()?);
+    let p2 = eval(&p);
     println!("P2: {}", p2);
 
     Ok(())
